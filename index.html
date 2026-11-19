@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>零食仓库 SnackGuard · 保质期与比价管理</title>
+<style>
+/* SECTION: reset */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --seed:#E8A33D;--seed-deep:#C77F1A;--ink:#2A2118;--ink-soft:#6B5D4F;
+  --paper:#FBF7F0;--card:#FFFFFF;--line:#EADFCF;
+  --normal:#2E7D32;--warning:#EF6C00;--urgent:#C62828;--expired:#757575;
+  --radius:16px;--shadow:0 6px 24px rgba(120,90,40,.08);
+  --maxw:1080px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);background:var(--paper);line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px;width:100%}
+section{padding:64px 0}
+h2{font-size:clamp(1.5rem,3.5vw,2.1rem);font-weight:800;letter-spacing:-.01em;margin-bottom:8px}
+.lead{color:var(--ink-soft);max-width:640px;margin-bottom:36px}
+.eyebrow{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.08em;color:var(--seed-deep);text-transform:uppercase;margin-bottom:10px}
+
+/* SECTION: nav */
+header{position:sticky;top:0;z-index:50;background:rgba(251,247,240,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:16px;height:60px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem}
+.brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--seed),var(--seed-deep));display:grid;place-items:center;color:#fff;font-size:1rem;flex:none}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.nav-links a{font-size:.9rem;color:var(--ink-soft);padding:8px 12px;border-radius:8px;transition:.15s}
+.nav-links a:hover{background:#fff;color:var(--ink)}
+@media(max-width:680px){.nav-links{display:none}}
+
+/* SECTION: hero */
+.hero{padding:72px 0 56px;background:
+  radial-gradient(900px 400px at 85% -10%,rgba(232,163,61,.18),transparent 60%),
+  radial-gradient(700px 360px at 0% 110%,rgba(232,163,61,.10),transparent 55%)}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:36px}}
+.hero h1{font-size:clamp(2rem,5.5vw,3.2rem);font-weight:900;line-height:1.15;letter-spacing:-.02em;margin:14px 0 18px}
+.hero h1 .hl{color:var(--seed-deep)}
+.hero p.sub{font-size:clamp(1rem,2.2vw,1.15rem);color:var(--ink-soft);max-width:520px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 28px}
+.badge{font-size:.8rem;font-weight:600;color:var(--seed-deep);background:rgba(232,163,61,.14);border:1px solid rgba(232,163,61,.3);padding:5px 12px;border-radius:999px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-size:.95rem;font-weight:700;padding:12px 22px;border-radius:12px;transition:.15s;min-height:44px}
+.btn-primary{background:linear-gradient(135deg,var(--seed),var(--seed-deep));color:#fff;box-shadow:0 6px 18px rgba(199,127,26,.3)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--seed)}
+
+/* SECTION: phone mock */
+.phone{width:270px;max-width:100%;margin:0 auto;background:#1d1710;border-radius:34px;padding:12px;box-shadow:0 24px 60px rgba(80,55,20,.28)}
+.phone-screen{background:var(--paper);border-radius:24px;overflow:hidden;padding:16px 14px}
+.phone-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.phone-top .t{font-weight:800;font-size:.95rem}
+.phone-top .dots{display:flex;gap:4px}
+.phone-top .dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:9px}
+.pcard .row1{display:flex;align-items:center;gap:8px}
+.pcard .thumb{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;font-size:1rem}
+.pcard .nm{font-weight:700;font-size:.85rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pcard .meta{font-size:.72rem;color:var(--ink-soft);margin-top:5px;display:flex;justify-content:space-between}
+.pill.normal{color:var(--normal);background:rgba(46,125,50,.12)}
+.pill.warning{color:var(--warning);background:rgba(239,108,0,.12)}
+.pill.urgent{color:var(--urgent);background:rgba(198,40,40,.12)}
+.pill.expired{color:var(--expired);background:rgba(117,117,117,.14)}
+
+/* SECTION: features */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);transition:.18s}
+.feat:hover{transform:translateY(-3px);border-color:rgba(232,163,61,.5)}
+.feat .ic{width:44px;height:44px;border-radius:12px;background:rgba(232,163,61,.14);display:grid;place-items:center;margin-bottom:14px;color:var(--seed-deep)}
+.feat h3{font-size:1.05rem;font-weight:800;margin-bottom:7px}
+.feat p{font-size:.9rem;color:var(--ink-soft)}
+
+/* SECTION: demo */
+.demo-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px;max-width:640px}
+.demo-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.demo-status{font-size:1.05rem;font-weight:800;padding:8px 18px;border-radius:999px;transition:.2s}
+.demo-days{font-size:.95rem;color:var(--ink-soft)}
+.demo-days b{font-size:1.4rem;color:var(--ink);font-weight:800}
+input[type=range]{width:100%;height:8px;border-radius:999px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,var(--expired) 0%,var(--urgent) 12%,var(--warning) 40%,var(--normal) 100%);outline:none;margin:18px 0 6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--seed-deep);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--seed-deep);cursor:pointer}
+.demo-scale{display:flex;justify-content:space-between;font-size:.72rem;color:var(--ink-soft);margin-bottom:18px}
+.demo-note{font-size:.85rem;color:var(--ink-soft);background:var(--paper);border-radius:10px;padding:12px 14px}
+.demo-thresholds{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.thr{font-size:.78rem;font-weight:600;padding:5px 12px;border-radius:8px;border:1px solid var(--line)}
+
+/* SECTION: architecture */
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+@media(max-width:820px){.arch{grid-template-columns:1fr}}
+.layers{display:flex;flex-direction:column;gap:8px}
+.layer{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.layer .n{width:30px;height:30px;border-radius:8px;background:rgba(232,163,61,.16);color:var(--seed-deep);font-weight:800;display:grid;place-items:center;flex:none;font-size:.85rem}
+.layer .lt{font-weight:700;font-size:.95rem}
+.layer .ld{font-size:.8rem;color:var(--ink-soft)}
+.stack-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.tag{font-size:.8rem;font-weight:600;background:#fff;border:1px solid var(--line);padding:6px 13px;border-radius:999px;color:var(--ink-soft)}
+.model{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.model h3{font-size:1rem;font-weight:800;margin-bottom:14px}
+.model pre{font-family:"SF Mono",Consolas,Monaco,monospace;font-size:.82rem;line-height:1.9;color:var(--ink);background:var(--paper);border-radius:10px;padding:16px;overflow-x:auto}
+.model .cmt{color:var(--ink-soft)}
+
+/* SECTION: rules */
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rule{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.rule .rk{font-weight:800;font-size:.92rem;color:var(--seed-deep);margin-bottom:5px}
+.rule .rv{font-size:.88rem;color:var(--ink-soft)}
+
+/* SECTION: privacy */
+.privacy{background:linear-gradient(135deg,rgba(232,163,61,.1),rgba(232,163,61,.03))}
+.priv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.priv{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+.priv .ic{width:40px;height:40px;border-radius:11px;background:rgba(46,125,50,.12);color:var(--normal);display:grid;place-items:center;margin-bottom:12px}
+.priv h3{font-size:1rem;font-weight:800;margin-bottom:7px}
+.priv p{font-size:.88rem;color:var(--ink-soft)}
+.disclaimer{margin-top:24px;background:#fff;border:1px solid rgba(198,40,40,.25);border-left:4px solid var(--urgent);border-radius:12px;padding:20px 22px}
+.disclaimer h3{font-size:.95rem;font-weight:800;color:var(--urgent);margin-bottom:8px}
+.disclaimer p{font-size:.86rem;color:var(--ink-soft)}
+
+/* SECTION: footer */
+footer{border-top:1px solid var(--line);padding:36px 0;text-align:center}
+footer .fbrand{font-weight:800;margin-bottom:6px}
+footer p{font-size:.82rem;color:var(--ink-soft)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<!-- SECTION: nav -->
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><span class="logo">🍿</span>零食仓库</a>
+    <nav class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#demo">临期演示</a>
+      <a href="#arch">架构</a>
+      <a href="#rules">规则</a>
+      <a href="#privacy">隐私</a>
+    </nav>
+  </div>
+</header>
+
+<!-- SECTION: hero -->
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">SnackGuard · v1.0.0</span>
+      <h1>别让零食<span class="hl">过期</span>，<br>别让囤货<span class="hl">买贵</span>。</h1>
+      <p class="sub">个人零食饮料的保质期与比价管理工具。同一商品的多口味收进一个卡片集册，按剩余保质期排序、临期分级提醒，价格改动只增不改、历史最低随时可查。</p>
+      <div class="badges">
+        <span class="badge">本地优先 · 无后端</span>
+        <span class="badge">离线可用</span>
+        <span class="badge">无账号 · 不上传</span>
+        <span class="badge">Android 优先</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#demo">体验临期分级 →</a>
+        <a class="btn btn-ghost" href="#features">查看功能</a>
+      </div>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-top"><span class="t">零食仓库</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="pcard">
+            <div class="row1"><span class="thumb" style="background:rgba(198,40,40,.12)">🥤</span><span class="nm">可乐 · 无糖</span><span class="pill urgent">剩 8 天</span></div>
+            <div class="meta"><span>¥3.50 · 最低 ¥2.90</span><span>3 口味</span></div>
+          </div>
+          <div class="pcard">
+            <div class="row1"><span class="thumb" style="background:rgba(239,108,0,.12)">🍪</span><span class="nm">曲奇 · 黄油</span><span class="pill warning">剩 47 天</span></div>
+            <div class="meta"><span>¥12.00</span><span>2 口味</span></div>
+          </div>
+          <div class="pcard">
+            <div class="row1"><span class="thumb" style="background:rgba(46,125,50,.12)">🧃</span><span class="nm">果汁 · 橙味</span><span class="pill normal">剩 210 天</span></div>
+            <div class="meta"><span>¥6.80 · 最低</span><span>1 口味</span></div>
+          </div>
+          <div class="pcard">
+            <div class="row1"><span class="thumb" style="background:rgba(117,117,117,.14)">🍫</span><span class="nm">巧克力 · 黑巧</span><span class="pill expired">已过期 3 天</span></div>
+            <div class="meta"><span>¥9.90</span><span>1 口味</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: features -->
+<section id="features">
+  <div class="wrap">
+    <span class="eyebrow">核心功能</span>
+    <h2>八件事，管好你的零食仓库</h2>
+    <p class="lead">从录入到提醒到比价，覆盖个人囤货的完整链路。所有功能离线可用，数据只存在本机。</p>
+    <div class="feat-grid">
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><h3>立体收纳</h3><p>同一商品的多个口味收进一个「卡片集册」，各自记保质期与价格，不再散落一地。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><h3>保质期排序</h3><p>首页按剩余保质期升序，临期 / 紧急 / 已过期分级标注，最该先吃的排最前。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 3 8-8"/><path d="M16 7h5v5"/></svg></div><h3>价格历史</h3><p>改价只增不改，旧价保留。当前价、历史最低价、折线趋势随时可查，囤货心里有数。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/><path d="M9 12h6"/></svg></div><h3>同类别对比</h3><p>饮料比饮料、零食比零食（2~4 项）。配料并集表 + 每 100g 营养归一化，最高红最低绿。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></div><h3>扫描录入</h3><p>ML Kit 离线 OCR 识别包装，预填配料、营养、生产日期等，结果一律标「待校对」。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>配料标记</h3><p>内置规则词典标记添加剂、致过敏源、婴幼儿不适成分，紫 / 红 / 黄三色可叠加。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><h3>临期提醒</h3><p>每日本地通知 + 回前台补精确清单 + 当天去重，不赌后台保活，到点就提醒。</p></div>
+      <div class="feat reveal"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></div><h3>备份迁移</h3><p>整库 JSON 导出 / 导入，图片可选嵌入。经系统分享面板，换机数据可迁移，不主动上传。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: demo -->
+<section id="demo" style="background:#fff">
+  <div class="wrap">
+    <span class="eyebrow">可交互演示</span>
+    <h2>临期分级，拖一下就懂</h2>
+    <p class="lead">这是 App 的核心判定逻辑：剩余天数落在哪个区间，首页就给出对应标注。拖动滑块试试。</p>
+    <div class="demo-card reveal">
+      <div class="demo-head">
+        <span class="demo-status" id="demoStatus">正常</span>
+        <span class="demo-days">剩余 <b id="demoDays">120</b> 天</span>
+      </div>
+      <input type="range" id="demoRange" min="-30" max="240" value="120" step="1" aria-label="剩余保质期天数">
+      <div class="demo-scale"><span>已过期</span><span>0</span><span>30</span><span>90</span><span>240 天</span></div>
+      <div class="demo-note" id="demoNote"></div>
+      <div class="demo-thresholds">
+        <span class="thr" style="color:var(--expired)">已过期 ≤ 0</span>
+        <span class="thr" style="color:var(--urgent)">紧急 1~30</span>
+        <span class="thr" style="color:var(--warning)">临期 31~90</span>
+        <span class="thr" style="color:var(--normal)">正常 &gt; 90</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: architecture -->
+<section id="arch">
+  <div class="wrap">
+    <span class="eyebrow">技术架构</span>
+    <h2>五层分层，领域纯函数先测</h2>
+    <p class="lead">个人开发铁律：领域层纯 Dart、零 Flutter/DB 依赖，先写先测；服务层接口抽象可 Mock；图片存文件、DB 存路径。</p>
+    <div class="arch">
+      <div>
+        <div class="layers">
+          <div class="layer reveal"><span class="n">5</span><div><div class="lt">表现层 UI</div><div class="ld">pages · widgets</div></div></div>
+          <div class="layer reveal"><span class="n">4</span><div><div class="lt">状态层</div><div class="ld">Riverpod Provider / Notifier / Controller</div></div></div>
+          <div class="layer reveal"><span class="n">3</span><div><div class="lt">领域层</div><div class="ld">保质期 · 排序 · 对比 · 标记 · 提醒 · 解析（纯函数）</div></div></div>
+          <div class="layer reveal"><span class="n">2</span><div><div class="lt">服务层</div><div class="ld">相机 · OCR · 通知 · 备份（接口抽象）</div></div></div>
+          <div class="layer reveal"><span class="n">1</span><div><div class="lt">数据层</div><div class="ld">Drift 七表 + DAO · 视图模型</div></div></div>
+        </div>
+        <div class="stack-tags">
+          <span class="tag">Flutter</span><span class="tag">Drift / SQLite</span><span class="tag">Riverpod</span><span class="tag">go_router</span><span class="tag">ML Kit</span><span class="tag">fl_chart</span><span class="tag">local_notifications</span>
+        </div>
+      </div>
+      <div class="model reveal">
+        <h3>数据模型</h3>
+        <pre>Product(集册) 1—N Flavor(口味)
+Flavor 1—N Batch(批次/保质期)
+Flavor 1—N PriceRecord(价格历史)
+Flavor 1—1 Ingredient(配料)
+Flavor 1—1 Nutrition(营养)
+Settings(key/value)
+
+<span class="cmt"># 日期存秒级时间戳
+# 金额存分 · 枚举存 TEXT
+# 到期日冗余可重算
+# 价格只增不改</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: rules -->
+<section id="rules" style="background:#fff">
+  <div class="wrap">
+    <span class="eyebrow">核心业务规则</span>
+    <h2>口径统一，处处一致</h2>
+    <p class="lead">阈值、排序、换算、归一化都有明确定义，首页、详情、对比、提醒读同一套规则，不硬编码、不漂移。</p>
+    <div class="rules-grid">
+      <div class="rule reveal"><div class="rk">保质期换算</div><div class="rv">月/年按日历，月末夹紧（1/31 + 1 月 → 2/28）；到期日录入时算好存下。</div></div>
+      <div class="rule reveal"><div class="rk">状态阈值</div><div class="rv">normal &gt;90 / warning 31~90 / urgent 1~30 / expired ≤0，可在设置改，首页读设置。</div></div>
+      <div class="rule reveal"><div class="rk">排序</div><div class="rv">口味按剩余天数升序；集册按「最早到期口味」升序，最紧急的代表整册。</div></div>
+      <div class="rule reveal"><div class="rk">价格</div><div class="rv">当前价 = 最新一条；最低价 = 历史最小；改价只增不改，旧价永久保留。</div></div>
+      <div class="rule reveal"><div class="rk">营养归一化</div><div class="rv">统一到每 100g；每份基准用 值/serving_g×100；缺克数跳过而非补零。</div></div>
+      <div class="rule reveal"><div class="rk">对比约束</div><div class="rv">仅同类别；2~4 项；配料并集、营养最高红最低绿，跨类别直接拒绝。</div></div>
+      <div class="rule reveal"><div class="rk">标记优先级</div><div class="rv">婴幼儿不适(紫) &gt; 致过敏源(红加粗) &gt; 添加剂(黄底)，可叠加。</div></div>
+      <div class="rule reveal"><div class="rk">OCR 与提醒</div><div class="rv">OCR 结果必校对、失败不阻塞；提醒每日固定 + 回前台补内容 + 当天去重。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: privacy -->
+<section id="privacy" class="privacy">
+  <div class="wrap">
+    <span class="eyebrow">隐私与免责</span>
+    <h2>你的数据，只在你手机里</h2>
+    <p class="lead">本地优先不是一句口号：没有账号、没有服务器、没有上传。下面是数据去向与参考性功能的边界。</p>
+    <div class="priv-grid">
+      <div class="priv reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>本地存储</h3><p>全部数据存本机私有数据库与文件目录，不收集、不上传、不共享。卸载即清除，请提前备份。</p></div>
+      <div class="priv reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><h3>离线识别</h3><p>相机仅用于录入与识别，OCR 在本机离线完成，图片不会上传到任何服务器。</p></div>
+      <div class="priv reveal"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg></div><h3>分享由你定</h3><p>导出生成本地文件后调起系统分享面板，发到哪由你选，App 不主动发送任何数据。</p></div>
+    </div>
+    <div class="disclaimer reveal">
+      <h3>⚠ 参考性功能免责声明</h3>
+      <p>配料标记由保守规则词典匹配生成，必然存在遗漏、也可能误判；OCR 识别可能有误差；营养对比与保质期推算仅供横向参考。以上均不构成食用建议或食品安全保证。过敏体质人群、婴幼儿及特殊疾病患者，食用前务必以包装原文为准并咨询医生或专业人士。</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: footer -->
+<footer>
+  <div class="wrap">
+    <div class="fbrand">🍿 零食仓库 SnackGuard</div>
+    <p>v1.0.0 · 个人自用阶段 · Flutter + Drift + Riverpod</p>
+    <p style="margin-top:6px">本页面为项目介绍展示页，应用本体为 Android 原生应用，需装机运行。</p>
+  </div>
+</footer>
+
+<script>
+/* SECTION: demo logic */
+(function(){
+  var range=document.getElementById('demoRange');
+  var daysEl=document.getElementById('demoDays');
+  var statusEl=document.getElementById('demoStatus');
+  var noteEl=document.getElementById('demoNote');
+  var COLORS={normal:'#2E7D32',warning:'#EF6C00',urgent:'#C62828',expired:'#757575'};
+  var LABEL={normal:'正常',warning:'临期',urgent:'紧急',expired:'已过期'};
+  function classify(d){
+    if(d<=0)return 'expired';
+    if(d<=30)return 'urgent';
+    if(d<=90)return 'warning';
+    return 'normal';
+  }
+  function noteFor(d,k){
+    if(k==='expired')return d===0?'今天到期，按口径归入「已过期」，该处理掉了。':'已过期 '+(-d)+' 天，建议尽快丢弃或处理。';
+    if(k==='urgent')return '剩 '+d+' 天，进入紧急区间（≤30 天），优先吃掉。';
+    if(k==='warning')return '剩 '+d+' 天，进入临期区间（≤90 天，约 3 个月），首页会特别标注。';
+    return '剩 '+d+' 天，状态正常，无需特别处理。';
+  }
+  function render(){
+    var d=parseInt(range.value,10);
+    var k=classify(d);
+    daysEl.textContent=d;
+    statusEl.textContent=LABEL[k];
+    statusEl.style.color=COLORS[k];
+    statusEl.style.background=COLORS[k]+'1f';
+    noteEl.textContent=noteFor(d,k);
+  }
+  range.addEventListener('input',render);
+  render();
+})();
+
+/* SECTION: reveal on scroll */
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>
